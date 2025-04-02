@@ -17,6 +17,8 @@ namespace MyBGList.Controllers
         [HttpGet(Name = "GetBoardGames")]
         public IEnumerable<BoardGame> Get()
         {
+            _logger.LogInformation("GetBoardGames endpoint was called at {time}", DateTime.UtcNow);
+
             return new[]
             {
                 new BoardGame()
