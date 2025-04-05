@@ -24,6 +24,13 @@ builder.Services.AddCors(options =>
         cfg.AllowAnyHeader();
         cfg.AllowAnyMethod();
     });
+    options.AddPolicy(name: "AnyOrigin_GetOnly",
+    cfg =>
+    {
+        cfg.AllowAnyOrigin();
+        cfg.AllowAnyHeader();
+        cfg.WithMethods("GET");
+    });
 });
 
 var app = builder.Build();
@@ -54,7 +61,7 @@ app.MapGet("/error", [EnableCors("AnyOrigin")][ResponseCache(NoStore = true)] ()
 app.MapGet("/error/test", [EnableCors("AnyOrigin")][ResponseCache(NoStore = true)] () => { throw new Exception("test"); });
 
 app.MapGet("/cod/test",
-[EnableCors("AnyOrigin")]
+[EnableCors("AnyOrigin_GetOnly")]
 [ResponseCache(NoStore = true)] () =>
 Results.Text("<script>" +
 "window.alert('Your client supports JavaScript!\\r\\n\\r\\n" +
