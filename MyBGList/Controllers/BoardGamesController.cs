@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MyBGList.DTO;
 using MyBGList.Models;
 
@@ -9,43 +10,34 @@ namespace MyBGList.Controllers
     [ApiController]
     public class BoardGamesController : ControllerBase
     {
+        private readonly ApplicationDbContext _context;
         private readonly ILogger<BoardGamesController> _logger;
 
-        public BoardGamesController(ILogger<BoardGamesController> logger)
+        public BoardGamesController(ApplicationDbContext context, ILogger<BoardGamesController> logger)
         {
+            _context = context;
             _logger = logger;
         }
 
         [HttpGet(Name = "GetBoardGames")]
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 60)]
-        public RestDTO<BoardGame[]> Get()
+        public async Task<RestDTO<BoardGame[]>> Get(int pageIndex = 0, int pageSize = 10)
         {
+            // this creates the IQueryable<T> expression tree
+            var query = _context.BoardGames.Skip(pageIndex * pageSize).Take(pageSize);
+
             return new RestDTO<BoardGame[]>()
             {
-                Data = new BoardGame[]
+                Data = await query.ToArrayAsync(),
+                PageIndex = pageIndex,
+                PageSize = pageSize,
+                RecordCount = await _context.BoardGames.CountAsync(),
+                Links = new List<LinkDTO>()
                 {
-                    new BoardGame()
-                    {
-                        Id = 1,
-                        Name = "name 1",
-                        Year = 2000,
-                    },
-                    new BoardGame()
-                    {
-                        Id = 2,
-                        Name = "name 2",
-                        Year = 2000,
-                    },
-                    new BoardGame()
-                    {
-                        Id = 3,
-                        Name = "name 3",
-                        Year = 2000,
-                    },
-                },
-                Links = new List<LinkDTO>
-                {
-                    new LinkDTO(Url.Action(null, "BoardGames", null, Request.Scheme)!, "self", "GET"),
+                    new LinkDTO(
+                        Url.Action(null, "BoardGames", null, Request.Scheme)!,
+                        "self",
+                        "GET"),
                 }
             };
         }
