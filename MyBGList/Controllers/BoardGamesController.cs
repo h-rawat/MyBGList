@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using MyBGList.DTO;
 using MyBGList.Models;
 using System.Linq.Dynamic.Core;
@@ -93,6 +94,33 @@ namespace MyBGList.Controllers
                         Url.Action(null, "BoardGames", model, Request.Scheme)!,
                         "self",
                         "POST"),
+                }
+            };
+        }
+
+        [HttpDelete(Name = "DeleteBoardGame")]
+        [ResponseCache(NoStore = true)]
+        public async Task<RestDTO<BoardGame>> Delete(int id)
+        {
+            var boardgame = await _context.BoardGames
+                .Where(b => b.Id == id)
+                .FirstOrDefaultAsync();
+
+            if (boardgame != null)
+            {
+                _context.BoardGames.Remove(boardgame);
+                await _context.SaveChangesAsync();
+            }
+
+            return new RestDTO<BoardGame>()
+            {
+                Data = boardgame!,
+                Links = new List<LinkDTO>
+                {
+                    new LinkDTO(
+                        Url.Action(null, "BoardGames", id, Request.Scheme)!,
+                        "self",
+                        "DELETE"),
                 }
             };
         }
